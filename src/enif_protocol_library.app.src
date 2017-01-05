@@ -1,0 +1,13 @@
+{application, enif_protocol_library,
+ [
+  {description, "protocol library Erlang NIF"},
+  {vsn, "1.0"},
+  {registered, []},
+  {application, [
+                 kernel,
+                 stdlib
+                ]},
+  {env, []},
+  {modules, [enif_protocol_library]}
+ ]
+}.
