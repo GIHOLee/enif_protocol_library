@@ -16,6 +16,7 @@
 #define DATA_PACK "data_pack"
 #define DATA_RESULT "data_result"
 
+#define INPUT_RECORD_NAME "input_rd"
 #define OUTPUT_RECORD_NAME "output_rd"
 
 static ERL_NIF_TERM exec_func_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
@@ -29,7 +30,7 @@ static ERL_NIF_TERM exec_func_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM a
 
   void *handle;
   int (*func)(INPUT_STRU *, OUTPUT_STRU *);
-  char fun_name[FUN_NAME_LEN+1];
+  char fun_name[FUN_NAME_LEN];
 
   handle = dlopen(SO_FILE_NAME, RTLD_NOW | RTLD_GLOBAL);
 
@@ -51,7 +52,7 @@ static ERL_NIF_TERM exec_func_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM a
   if (!enif_get_tuple(env, argv[2], &arity, &array_output) || arity != 8)
     return make_error_tuple(env, "invalid_output_tuple");
 
-  char meterADDR[METERID_LEN];
+  char meterADDR[METERID_LEN] = {'0'};
   char collector2[METERID_LEN];
   char collector1[METERID_LEN];
   char info[MAXINUM_SIZE];
@@ -143,6 +144,21 @@ static ERL_NIF_TERM exec_func_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM a
   int func_result = func(&in, &out);
   close(handle);
 
+  ERL_NIF_TERM input_record_name_term, meterADDR_term, collector2_term, collector1_term, info_term, info_datalen_term, route1_term, route2_term, isBCD_term, subSEQ_term;
+  input_record_name_term = make_atom(env, INPUT_RECORD_NAME);
+  meterADDR_term = enif_make_string_len(env, in.meterADDR, strlen(in.meterADDR), ERL_NIF_LATIN1);
+  collector2_term = enif_make_string_len(env, in.collector2, strlen(in.collector2), ERL_NIF_LATIN1);
+  collector1_term = enif_make_string_len(env, in.collector1, strlen(in.collector1), ERL_NIF_LATIN1);
+  info_term = enif_make_string_len(env, in.info, in.info_datalen, ERL_NIF_LATIN1);
+  info_datalen_term = enif_make_int(env, in.info_datalen);
+  route1_term = enif_make_string_len(env, in.route1, strlen(route1), ERL_NIF_LATIN1);
+  route2_term = enif_make_string_len(env, in.route2, strlen(route2), ERL_NIF_LATIN1);
+  isBCD_term = enif_make_string_len(env, in.isBCD, strlen(isBCD), ERL_NIF_LATIN1);
+  subSEQ_term = enif_make_int(env, in.subSEQ);
+  ERL_NIF_TERM input_record_term;
+  unsigned cnt_input_record = 10;
+  input_record_term = enif_make_tuple(env, cnt_input_record, input_record_name_term, meterADDR_term, collector2_term, collector1_term, info_term, info_datalen_term, route1_term, route2_term, isBCD_term, subSEQ_term);
+
   ERL_NIF_TERM output_record_name_term, func_result_term, data_term, frame_term, error_term, data_len_term, frame_len_term, err_len_term;
   output_record_name_term = make_atom(env, OUTPUT_RECORD_NAME);
   func_result_term = enif_make_int(env, func_result);
@@ -152,13 +168,15 @@ static ERL_NIF_TERM exec_func_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM a
   data_len_term = enif_make_int(env, out.data_len);
   frame_len_term = enif_make_int(env, out.frame_len);
   err_len_term = enif_make_int(env, out.err_len);
-
   ERL_NIF_TERM output_record_term;
-  unsigned cnt = 8;
+  unsigned cnt_output_record = 8;
+  output_record_term = enif_make_tuple(env, cnt_output_record, output_record_name_term, data_term, frame_term, error_term, data_len_term, frame_len_term, err_len_term, func_result_term);
 
-  output_record_term = enif_make_tuple(env, cnt, output_record_name_term, data_term, frame_term, error_term, data_len_term, frame_len_term, err_len_term, func_result_term);
 
-  return make_ok_tuple(env, output_record_term);
+  ERL_NIF_TERM return_term;
+  return_term = enif_make_tuple2(env, input_record_term, output_record_term);
+
+  return make_ok_tuple(env, return_term);
 }
 
 static ErlNifFunc nif_funs[] =
