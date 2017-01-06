@@ -6,12 +6,12 @@
 #include "zjj_dll.h"
 
 #define SO_FILE_NAME "libsplitairconditioning_ethnet_dsj_zhygzdn.so"
-#define NIF_MODULE_ splitairconditioning_ethnet_dsj_zhygzdn_nif
-#define NIF_MODULE NIF_MODULE_
+#define NIF_MODULE splitairconditioning_ethnet_dsj_zhygzdn_nif
 
-#define METERID_LEN 12
-#define MAXINUM_SIZE 1024
-#define FUN_NAME_LEN 256
+#define METERID_LEN (12+1)
+#define MAXINUM_SIZE (1024+1)
+#define FUN_NAME_LEN (256+1)
+#define BCD_LEN (3+1)
 
 #define DATA_PACK "data_pack"
 #define DATA_RESULT "data_result"
@@ -51,14 +51,14 @@ static ERL_NIF_TERM exec_func_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM a
   if (!enif_get_tuple(env, argv[2], &arity, &array_output) || arity != 8)
     return make_error_tuple(env, "invalid_output_tuple");
 
-  char meterADDR[METERID_LEN+1];
-  char collector2[METERID_LEN+1];
-  char collector1[METERID_LEN+1];
+  char meterADDR[METERID_LEN];
+  char collector2[METERID_LEN];
+  char collector1[METERID_LEN];
   char info[MAXINUM_SIZE];
   int info_datalen = 0;
   char route1[METERID_LEN];
   char route2[METERID_LEN];
-  char isBCD[4];
+  char isBCD[BCD_LEN];
   unsigned char subSEQ = 0;
 
   if (!enif_is_atom(env, array_input[0]))
